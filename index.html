@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 💌</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f7e8e8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* খামের মূল কাঠামো */
+        .envelope-wrapper {
+            background-color: #f08080;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            position: relative;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            width: 300px;
+            height: 200px;
+            transition: all 0.5s ease;
+        }
+
+        /* খামের ওপরের ঢাকনা (Flap) */
+        .envelope-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 4;
+            border-top: 105px solid #e06666;
+            border-right: 150px solid transparent;
+            border-left: 150px solid transparent;
+            transform-origin: top;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        /* খামের সামনের পকেট */
+        .envelope-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 3;
+            width: 0;
+            height: 0;
+            border-top: 100px solid transparent;
+            border-right: 150px solid #f49797;
+            border-bottom: 100px solid #f49797;
+            border-left: 150px solid #f49797;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        /* হার্ট সিল (Seal) */
+        .heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            background: #d81b60;
+            z-index: 5;
+            transform: translate(-50%, -20%) rotate(45deg);
+            transition: transform 0.4s ease-in-out, opacity 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .heart:before, .heart:after {
+            content: '';
+            width: 30px;
+            height: 30px;
+            background-color: #d81b60;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .heart:before {
+            top: -15px;
+            left: 0;
+        }
+
+        .heart:after {
+            left: -15px;
+            top: 0;
+        }
+
+        /* ট্যাপ নির্দেশিকা টেক্সট */
+        .tap-instruction {
+            margin-top: 25px;
+            color: #888;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* --- ফুল স্ক্রিন খাতার পাতার মতো চিঠি --- */
+        .full-screen-letter {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 90%;
+            max-width: 360px;
+            background-color: #fffdf9;
+            /* খাতার কাগজের রুলটান লাইন এফেক্ট */
+            background-image: linear-gradient(#e1f5fe 1px, transparent 1px);
+            background-size: 100% 24px;
+            border: 1px solid #dcd6cd;
+            border-radius: 8px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            padding: 20px 16px;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        /* চিঠির ভেতরের লেখা */
+        .letter-content {
+            font-size: 11.5px;
+            color: #2c2c2c;
+            line-height: 24px;
+            text-align: left;
+        }
+
+        .letter-content p {
+            margin-bottom: 0px;
+        }
+
+        .space-top {
+            margin-top: 12px;
+        }
+
+        .signature {
+            margin-top: 15px;
+            display: block;
+        }
+
+        /* --- খোলার পরের অ্যানিমেশন স্টেট --- */
+        .container.open .envelope-wrapper::before {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .container.open .heart {
+            transform: translate(-50%, -20%) rotate(45deg) scale(0);
+            opacity: 0;
+        }
+
+        .container.open .envelope-wrapper {
+            opacity: 0.1;
+            transform: scale(0.7);
+        }
+
+        .container.open .tap-instruction {
+            opacity: 0;
+        }
+
+        .container.open .full-screen-letter {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="mainContainer" onclick="toggleLetter()">
+        <!-- খামের অংশ -->
+        <div class="envelope-wrapper" id="envelopeWrapper">
+            <div class="heart"></div>
+        </div>
+        <div class="tap-instruction">চিঠিটি পড়তে ট্যাপ করো</div>
+
+        <!-- পুরো ডিসপ্লেতে ভেসে ওঠা খাতার পাতার চিঠি -->
+        <div class="full-screen-letter" id="fullLetter">
+            <div class="letter-content">
+                <p><strong>প্রিয় পাখি,</strong></p>
+                <p class="space-top">আশা করি ভালো আছো। হুট করে তোমাকে চিঠি লিখতে বসে গেলাম। আজকাল টেক্সট আর কল-মেসেজের ভিড়ে চিঠি লেখার অভ্যাসটা তো প্রায় হারিয়েই গেছে, তাই ভাবলাম আজ একটু অন্যভাবেই তোমাকে আমার মনের কথাগুলো জানাই।</p>
+                <p class="space-top">দূরত্বটা আমাদের মাঝে কিছু কিলোমিটারের পথ তৈরি করেছে ঠিকই, কিন্তু খেয়াল করে দেখেছো? আমাদের সম্পর্কের মাঝে এতটুকু দূরত্বও কিন্তু তৈরি করতে পারেনি। দূরে থাকলেও সারাদিনের নানা গল্প, তোমার সঙ্গে একটু হাসাহাসি কিংবা হঠাৎ মন খারাপের কথা ভাগ করে নেওয়া—এই সবকিছুই আমার দিনটাকে মুহূর্তেই সুন্দর করে দেয়।</p>
+                <p class="space-top">সত্যি বলতে, দূরত্ব মাঝেমধ্যে একটু কষ্ট দেয় বটে, তবে এটা আমাকে আরও ভালোভাবে বুঝিয়ে দেয় আমার জীবনে তোমার গুরুত্ব কতটা। এত দূরে থেকেও তুমি যেভাবে আমাকে বোঝো, পাশে থেকো আর ভরসা দাও, তার জন্য আমি অনেক কৃতজ্ঞ। কোনো বিচার-বিবেচনা ছাড়াই আমাকে মন খুলে কথা বলতে দেওয়ার মতো একজন মানুষ তুমি।</p>
+                <p class="space-top">খুব ইচ্ছে করে হুট করে কোনো একদিন তোমার শহরটায় চলে আসি, সামনাসামনি বসে খুব গল্প করি। খুব কাছে থেকে তোমায় দুটি চোখ ভরে দেখি। একটা রিকশায় করে সারা শহর ঘুরে বেড়াই। তোমার হাত ধরে একটু হাটি। তোমার চোখে চোখ রেখে হারিয়ে যাই।এই অপেক্ষার একদিন অবসান ঘটবে ইনশাআল্লাহ। আমাদের এই অপেক্ষাটুকুও একটা সুন্দর স্মৃতি হয়ে থাকুক। নিজের যত্ন নিয়ো সবসময়। আর সারা জীবন আমার হাতটা ধরে পাশে থেকো। আমিও সারাজীবন তোমার পাশে আছি, ইনশাআল্লাহ।</p>
+                <div class="signature">
+                    <p><strong>ইতি,</strong></p>
+                    <p><strong>আহাদ</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // পেপার খোলার জাদুকরী সাউন্ড ইফেক্ট ফাংশন (Web Audio API)
+        function playSound(isOpen) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (isOpen) {
+                    // খোলার সময় ওপরের দিকে ওঠা মিষ্টি সাউন্ড
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else {
+                    // বন্ধ করার সময় নিচের দিকে নামার সাউন্ড
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(250, audioCtx.currentTime + 0.25);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch (e) {
+                // ব্র라우জার পলিসির কারণে সাউন্ড না চললেও যেন অ্যানিমেশনে সমস্যা না হয়
+            }
+        }
+
+        function toggleLetter() {
+            const container = document.getElementById('mainContainer');
+            const isOpen = container.classList.contains('open');
+            
+            container.classList.toggle('open');
+            
+            // সাউন্ড বাজানো (খুললে ওপেন সাউন্ড, বন্ধ হলে ক্লোজ সাউন্ড)
+            playSound(!isOpen);
+        }
+    </script>
+</body>
+</html>
